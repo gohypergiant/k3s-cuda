@@ -2,7 +2,7 @@
 set -e
 cd $(dirname $0)
 
-K3S_TAG="${1:-release-1.21}"
+K3S_TAG="${1:-release-1.26}"
 IMAGE_TAG="${K3S_TAG/+/-}"
 
 if [ -d k3s ]; then
