@@ -12,14 +12,35 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
+      - name: Cache k3s build
+        uses: actions/cache@v3
+        id: cache-k3s-build
+        with:
+          path: k3s/build
+          key: ${{ runner.os }}-k3s-build-release-1.26-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-k3s-build-release-1.26-
+            ${{ runner.os }}-k3s-build-
+
+      - name: Test cache
+        id: test-cache
+        run: |
+          if [ -f k3s/build/out/data.tar.zst ]; then
+            echo "::set-output name=cache-hit::true"
+          else
+            echo "::set-output name=cache-hit::false"
+          fi
+
       - name: Clone k3s
         uses: actions/checkout@v3
+        if: steps.test-cache.outputs.cache-hit != 'true'
         with:
           repository: rancher/k3s
           path: k3s
           ref: release-1.26
 
       - name: Compile k3s
+        if: steps.test-cache.outputs.cache-hit != 'true'
         run: |
           cd k3s
           mkdir -p build/data && ./scripts/download && go generate
